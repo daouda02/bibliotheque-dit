@@ -3,3 +3,5 @@
 ['remote "gdrive"']
     url = gdrive://1E6nw07HucT8fPKEyVdyhTUssk2I3qaey
     gdrive_acknowledge_abuse = true
+    gdrive_client_id = 157933652981-rfpadeact8bfmeltmral5lhtppckjtsi.apps.googleusercontent.com
+    gdrive_client_secret = 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
