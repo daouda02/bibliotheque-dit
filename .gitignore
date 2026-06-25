@@ -51,3 +51,7 @@ logs/
 .env
 .env.*
 !.env.example
+
+client_secret_*.json
+
+.dvc/config.local
