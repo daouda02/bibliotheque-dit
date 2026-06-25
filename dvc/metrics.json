@@ -1,0 +1,8 @@
+{
+  "precision_at_k": 1.0,
+  "nb_utilisateurs": 5,
+  "nb_livres": 6,
+  "nb_interactions": 15,
+  "densite_matrice": 0.5,
+  "utilisateurs_evalues": 5
+}
