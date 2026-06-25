@@ -1,0 +1,6 @@
+CREATE DATABASE db_livres;
+CREATE DATABASE db_utilisateurs;
+CREATE DATABASE db_emprunts;
+GRANT ALL PRIVILEGES ON DATABASE db_livres TO sahra02;
+GRANT ALL PRIVILEGES ON DATABASE db_utilisateurs TO sahra02;
+GRANT ALL PRIVILEGES ON DATABASE db_emprunts TO sahra02;

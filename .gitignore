@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environnements virtuels
+.env
+.venv
+venv/
+env/
+
+# Django
+*.sqlite3
+local_settings.py
+staticfiles/
+mediafiles/
+
+# FastAPI / ML
+model_artifacts/*.pkl
+model_artifacts/*.joblib
+__pycache__/
+
+# DVC
+/dvc/data/*.csv
+/dvc/models/*.pkl
+
+# Docker
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Variables d'environnement (sensible)
+.env
+.env.*
+!.env.example
