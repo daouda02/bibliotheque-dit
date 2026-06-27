@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  # ── Job 1 : Tests et validation ─────────────────────────
+  #  Job 1 : Tests et validation 
   test:
     name: Tests des services
     runs-on: ubuntu-latest
@@ -38,8 +38,7 @@ jobs:
           python-version: '3.11'
 
       - name: Installation des dépendances — Livres
-        run: |
-          pip install -r services/livres/requirements.txt
+        run: pip install -r services/livres/requirements.txt
 
       - name: Migrations — Livres
         env:
@@ -50,13 +49,10 @@ jobs:
           POSTGRES_PASSWORD: test_password
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-        run: |
-          cd services/livres
-          python manage.py migrate --noinput
+        run: cd services/livres && python manage.py migrate --noinput
 
       - name: Installation des dépendances — Utilisateurs
-        run: |
-          pip install -r services/utilisateurs/requirements.txt
+        run: pip install -r services/utilisateurs/requirements.txt
 
       - name: Migrations — Utilisateurs
         env:
@@ -67,13 +63,10 @@ jobs:
           POSTGRES_PASSWORD: test_password
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-        run: |
-          cd services/utilisateurs
-          python manage.py migrate --noinput
+        run: cd services/utilisateurs && python manage.py migrate --noinput
 
       - name: Installation des dépendances — Emprunts
-        run: |
-          pip install -r services/emprunts/requirements.txt
+        run: pip install -r services/emprunts/requirements.txt
 
       - name: Migrations — Emprunts
         env:
@@ -84,18 +77,13 @@ jobs:
           POSTGRES_PASSWORD: test_password
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-        run: |
-          cd services/emprunts
-          python manage.py migrate --noinput
+        run: cd services/emprunts && python manage.py migrate --noinput
 
       - name: Installation des dépendances — Recommandation
-        run: |
-          pip install -r services/recommandation/requirements.txt
+        run: pip install -r services/recommandation/requirements.txt
 
       - name: Validation FastAPI
-        run: |
-          cd services/recommandation
-          python -c "from app.main import app; print('FastAPI OK')"
+        run: cd services/recommandation && python -c "from app.main import app; print('FastAPI OK')"
 
       - name: Pipeline DVC
         run: |
@@ -105,7 +93,7 @@ jobs:
           python dvc/scripts/evaluate.py
           cat dvc/metrics.json
 
-  # ── Job 2 : Build des images Docker ─────────────────────
+  #  Job 2 : Build des images Docker
   build:
     name: Build Docker images
     runs-on: ubuntu-latest
@@ -120,36 +108,26 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build — Service Livres
-        run: |
-          docker build -t bibliotheque-livres:latest ./services/livres
-          echo " Image livres buildée"
+        run: docker build -t bibliotheque-livres:latest ./services/livres
 
       - name: Build — Service Utilisateurs
-        run: |
-          docker build -t bibliotheque-utilisateurs:latest ./services/utilisateurs
-          echo " Image utilisateurs buildée"
+        run: docker build -t bibliotheque-utilisateurs:latest ./services/utilisateurs
 
       - name: Build — Service Emprunts
-        run: |
-          docker build -t bibliotheque-emprunts:latest ./services/emprunts
-          echo " Image emprunts buildée"
+        run: docker build -t bibliotheque-emprunts:latest ./services/emprunts
 
       - name: Build — Service Recommandation
-        run: |
-          docker build -t bibliotheque-reco:latest ./services/recommandation
-          echo " Image recommandation buildée"
+        run: docker build -t bibliotheque-reco:latest ./services/recommandation
 
       - name: Build — Frontend
-        run: |
-          docker build -t bibliotheque-frontend:latest ./services/frontend
-          echo "Image frontend buildée"
+        run: docker build -t bibliotheque-frontend:latest ./services/frontend
 
-      - name: Résumé du build
+      - name: Résumé
         run: |
-          echo "Tous les services ont été buildés avec succès !"
+          echo "Tous les services buildés avec succès"
           docker images | grep bibliotheque
 
-  # ── Job 3 : Vérification DVC ────────────────────────────
+  #  Job 3 : Vérification DVC 
   dvc-check:
     name: Vérification pipeline DVC
     runs-on: ubuntu-latest
@@ -165,8 +143,7 @@ jobs:
           python-version: '3.11'
 
       - name: Installation DVC et dépendances ML
-        run: |
-          pip install dvc pandas scikit-learn scipy joblib numpy
+        run: pip install dvc pandas scikit-learn scipy joblib numpy
 
       - name: Exécution pipeline DVC
         run: |
@@ -176,7 +153,7 @@ jobs:
 
       - name: Affichage des métriques
         run: |
-          echo "📊 Métriques du modèle :"
+          echo "Métriques du modèle :"
           cat dvc/metrics.json
 
       - name: Upload métriques comme artifact
