@@ -88,6 +88,21 @@ jobs:
       - name: Pipeline DVC
         run: |
           pip install dvc pandas scikit-learn scipy joblib numpy
+          # Créer le fichier de données de test pour le CI
+          mkdir -p dvc/data dvc/models
+          cat > dvc/data/loans.csv << 'CSV'
+          emprunt_id,utilisateur_id,livre_id,date_emprunt,date_retour_prevue,date_retour_effective,statut
+          1,1,3,2024-01-10,2024-01-24,2024-01-22,retourne
+          2,1,5,2024-02-01,2024-02-15,2024-02-14,retourne
+          3,2,3,2024-01-15,2024-01-29,2024-01-28,retourne
+          4,2,7,2024-02-10,2024-02-24,,en_cours
+          5,3,1,2024-01-20,2024-02-03,2024-02-01,retourne
+          6,3,3,2024-02-05,2024-02-19,,en_cours
+          7,4,2,2024-01-05,2024-01-19,2024-01-18,retourne
+          8,4,5,2024-02-12,2024-02-26,,en_cours
+          9,5,1,2024-01-08,2024-01-22,2024-01-21,retourne
+          10,5,4,2024-01-25,2024-02-08,2024-02-07,retourne
+          CSV
           python dvc/scripts/preprocess.py
           python dvc/scripts/train.py
           python dvc/scripts/evaluate.py
@@ -147,9 +162,26 @@ jobs:
 
       - name: Exécution pipeline DVC
         run: |
+          pip install dvc pandas scikit-learn scipy joblib numpy
+          # Créer le fichier de données de test pour le CI
+          mkdir -p dvc/data dvc/models
+          cat > dvc/data/loans.csv << 'CSV'
+          emprunt_id,utilisateur_id,livre_id,date_emprunt,date_retour_prevue,date_retour_effective,statut
+          1,1,3,2024-01-10,2024-01-24,2024-01-22,retourne
+          2,1,5,2024-02-01,2024-02-15,2024-02-14,retourne
+          3,2,3,2024-01-15,2024-01-29,2024-01-28,retourne
+          4,2,7,2024-02-10,2024-02-24,,en_cours
+          5,3,1,2024-01-20,2024-02-03,2024-02-01,retourne
+          6,3,3,2024-02-05,2024-02-19,,en_cours
+          7,4,2,2024-01-05,2024-01-19,2024-01-18,retourne
+          8,4,5,2024-02-12,2024-02-26,,en_cours
+          9,5,1,2024-01-08,2024-01-22,2024-01-21,retourne
+          10,5,4,2024-01-25,2024-02-08,2024-02-07,retourne
+          CSV
           python dvc/scripts/preprocess.py
           python dvc/scripts/train.py
           python dvc/scripts/evaluate.py
+          cat dvc/metrics.json
 
       - name: Affichage des métriques
         run: |
