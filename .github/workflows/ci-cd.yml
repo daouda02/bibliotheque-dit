@@ -1,0 +1,186 @@
+name: CI/CD — Bibliothèque DIT
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+
+  # ── Job 1 : Tests et validation ─────────────────────────
+  test:
+    name: Tests des services
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: bibliotheque_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installation des dépendances — Livres
+        run: |
+          pip install -r services/livres/requirements.txt
+
+      - name: Migrations — Livres
+        env:
+          DJANGO_SECRET_KEY: test-secret-key-ci
+          DJANGO_DEBUG: "True"
+          POSTGRES_DB: bibliotheque_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+        run: |
+          cd services/livres
+          python manage.py migrate --noinput
+
+      - name: Installation des dépendances — Utilisateurs
+        run: |
+          pip install -r services/utilisateurs/requirements.txt
+
+      - name: Migrations — Utilisateurs
+        env:
+          DJANGO_SECRET_KEY: test-secret-key-ci
+          DJANGO_DEBUG: "True"
+          POSTGRES_DB: bibliotheque_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+        run: |
+          cd services/utilisateurs
+          python manage.py migrate --noinput
+
+      - name: Installation des dépendances — Emprunts
+        run: |
+          pip install -r services/emprunts/requirements.txt
+
+      - name: Migrations — Emprunts
+        env:
+          DJANGO_SECRET_KEY: test-secret-key-ci
+          DJANGO_DEBUG: "True"
+          POSTGRES_DB: bibliotheque_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+        run: |
+          cd services/emprunts
+          python manage.py migrate --noinput
+
+      - name: Installation des dépendances — Recommandation
+        run: |
+          pip install -r services/recommandation/requirements.txt
+
+      - name: Validation FastAPI
+        run: |
+          cd services/recommandation
+          python -c "from app.main import app; print('FastAPI OK')"
+
+      - name: Pipeline DVC
+        run: |
+          pip install dvc pandas scikit-learn scipy joblib numpy
+          python dvc/scripts/preprocess.py
+          python dvc/scripts/train.py
+          python dvc/scripts/evaluate.py
+          cat dvc/metrics.json
+
+  # ── Job 2 : Build des images Docker ─────────────────────
+  build:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build — Service Livres
+        run: |
+          docker build -t bibliotheque-livres:latest ./services/livres
+          echo " Image livres buildée"
+
+      - name: Build — Service Utilisateurs
+        run: |
+          docker build -t bibliotheque-utilisateurs:latest ./services/utilisateurs
+          echo " Image utilisateurs buildée"
+
+      - name: Build — Service Emprunts
+        run: |
+          docker build -t bibliotheque-emprunts:latest ./services/emprunts
+          echo " Image emprunts buildée"
+
+      - name: Build — Service Recommandation
+        run: |
+          docker build -t bibliotheque-reco:latest ./services/recommandation
+          echo " Image recommandation buildée"
+
+      - name: Build — Frontend
+        run: |
+          docker build -t bibliotheque-frontend:latest ./services/frontend
+          echo "Image frontend buildée"
+
+      - name: Résumé du build
+        run: |
+          echo "Tous les services ont été buildés avec succès !"
+          docker images | grep bibliotheque
+
+  # ── Job 3 : Vérification DVC ────────────────────────────
+  dvc-check:
+    name: Vérification pipeline DVC
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installation DVC et dépendances ML
+        run: |
+          pip install dvc pandas scikit-learn scipy joblib numpy
+
+      - name: Exécution pipeline DVC
+        run: |
+          python dvc/scripts/preprocess.py
+          python dvc/scripts/train.py
+          python dvc/scripts/evaluate.py
+
+      - name: Affichage des métriques
+        run: |
+          echo "📊 Métriques du modèle :"
+          cat dvc/metrics.json
+
+      - name: Upload métriques comme artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dvc-metrics
+          path: dvc/metrics.json
